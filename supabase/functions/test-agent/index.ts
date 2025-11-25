@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -86,7 +87,7 @@ serve(async (req) => {
   }
 
   try {
-    const { message, conversationHistory = [] } = await req.json();
+    const { message, conversationId } = await req.json();
     
     if (!message) {
       throw new Error('Message is required');
@@ -96,6 +97,33 @@ serve(async (req) => {
     if (!GOOGLE_API_KEY) {
       throw new Error('GOOGLE_API_KEY is not configured');
     }
+
+    // Initialize Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Get or create conversation
+    let currentConversationId = conversationId;
+    if (!currentConversationId) {
+      const { data: newConversation, error: convError } = await supabase
+        .from('conversations')
+        .insert({})
+        .select()
+        .single();
+      
+      if (convError) throw convError;
+      currentConversationId = newConversation.id;
+    }
+
+    // Load conversation history
+    const { data: messages, error: messagesError } = await supabase
+      .from('messages')
+      .select('role, content')
+      .eq('conversation_id', currentConversationId)
+      .order('created_at', { ascending: true });
+
+    if (messagesError) throw messagesError;
 
     console.log('Sending message to Gemini API');
 
@@ -109,7 +137,7 @@ serve(async (req) => {
         role: 'model',
         parts: [{ text: 'I understand. I am a professional handyman quote assistant and will only discuss handyman jobs, repairs, and installations. How can I help you today?' }]
       },
-      ...conversationHistory.map((msg: any) => ({
+      ...(messages || []).map((msg: any) => ({
         role: msg.role === 'user' ? 'user' : 'model',
         parts: [{ text: msg.content }]
       })),
@@ -147,8 +175,25 @@ serve(async (req) => {
 
     const agentResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response from agent';
 
+    // Save user message
+    await supabase.from('messages').insert({
+      conversation_id: currentConversationId,
+      role: 'user',
+      content: message
+    });
+
+    // Save assistant response
+    await supabase.from('messages').insert({
+      conversation_id: currentConversationId,
+      role: 'assistant',
+      content: agentResponse
+    });
+
     return new Response(
-      JSON.stringify({ response: agentResponse }),
+      JSON.stringify({ 
+        response: agentResponse,
+        conversationId: currentConversationId
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 

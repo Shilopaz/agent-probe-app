@@ -93,9 +93,9 @@ serve(async (req) => {
       throw new Error('Message is required');
     }
 
-    const GOOGLE_API_KEY = Deno.env.get('GOOGLE_API_KEY');
-    if (!GOOGLE_API_KEY) {
-      throw new Error('GOOGLE_API_KEY is not configured');
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) {
+      throw new Error('LOVABLE_API_KEY is not configured');
     }
 
     // Initialize Supabase client
@@ -125,55 +125,53 @@ serve(async (req) => {
 
     if (messagesError) throw messagesError;
 
-    console.log('Sending message to Gemini API');
+    console.log('Sending message to Lovable AI');
 
-    // Build conversation with system prompt and history
-    const contents = [
-      {
-        role: 'user',
-        parts: [{ text: SYSTEM_PROMPT }]
-      },
-      {
-        role: 'model',
-        parts: [{ text: 'I understand. I am a professional handyman quote assistant and will only discuss handyman jobs, repairs, and installations. How can I help you today?' }]
-      },
+    // Build conversation history for Lovable AI
+    const conversationMessages = [
+      { role: 'system', content: SYSTEM_PROMPT },
       ...(messages || []).map((msg: any) => ({
-        role: msg.role === 'user' ? 'user' : 'model',
-        parts: [{ text: msg.content }]
+        role: msg.role,
+        content: msg.content
       })),
-      {
-        role: 'user',
-        parts: [{ text: message }]
-      }
+      { role: 'user', content: message }
     ];
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GOOGLE_API_KEY}`,
+      'https://ai.gateway.lovable.dev/v1/chat/completions',
       {
         method: 'POST',
         headers: {
+          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          contents,
-          generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 1024,
-          }
+          model: 'google/gemini-2.5-flash',
+          messages: conversationMessages,
+          temperature: 0.7,
+          max_tokens: 1024,
         }),
       }
     );
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Gemini API error:', response.status, errorText);
-      throw new Error(`Gemini API returned ${response.status}: ${errorText}`);
+      console.error('Lovable AI error:', response.status, errorText);
+      
+      if (response.status === 429) {
+        throw new Error('Rate limit exceeded. Please try again in a moment.');
+      }
+      if (response.status === 402) {
+        throw new Error('Payment required. Please add credits to your workspace.');
+      }
+      
+      throw new Error(`AI Gateway returned ${response.status}: ${errorText}`);
     }
 
     const data = await response.json();
-    console.log('Received response from Gemini');
+    console.log('Received response from Lovable AI');
 
-    const agentResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response from agent';
+    const agentResponse = data.choices?.[0]?.message?.content || 'No response from agent';
 
     // Save user message
     await supabase.from('messages').insert({
@@ -200,9 +198,11 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in test-agent function:', error);
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+    const status = errorMessage.includes('Rate limit') ? 429 : 
+                   errorMessage.includes('Payment required') ? 402 : 500;
     return new Response(
       JSON.stringify({ error: errorMessage }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });

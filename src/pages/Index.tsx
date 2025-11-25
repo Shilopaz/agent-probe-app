@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { PlusCircle } from "lucide-react";
 
 type Message = {
   id: string;
@@ -89,12 +90,35 @@ const Index = () => {
     }
   };
 
+  const handleNewChat = () => {
+    setMessages([]);
+    setConversationId(null);
+    setMessage("");
+    toast({
+      title: "New chat started",
+      description: "Ready for your next handyman job",
+    });
+  };
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-2xl h-[600px] flex flex-col space-y-4">
-        <div className="text-center space-y-2">
-          <h1 className="text-2xl font-semibold text-foreground">Handyman Quote Agent</h1>
-          <p className="text-sm text-muted-foreground">Get instant quotes for your handyman jobs</p>
+        <div className="flex items-center justify-between">
+          <div className="flex-1 text-center space-y-2">
+            <h1 className="text-2xl font-semibold text-foreground">Handyman Quote Agent</h1>
+            <p className="text-sm text-muted-foreground">Get instant quotes for your handyman jobs</p>
+          </div>
+          {messages.length > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleNewChat}
+              className="flex items-center gap-2"
+            >
+              <PlusCircle className="h-4 w-4" />
+              New Chat
+            </Button>
+          )}
         </div>
 
         {/* Messages container */}

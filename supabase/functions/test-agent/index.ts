@@ -293,6 +293,28 @@ Ask clarifying questions about SYMPTOMS only (never about solutions):
 
 ---
 
+### **תמונות - מתי לבקש ומה לעשות**
+
+**בקש תמונה כשזה יעזור לדיוק:**
+- נזילות/כתמי רטיבות - "תוכל לצלם את האזור? זה יעזור לי להבין את היקף הבעיה"
+- נזק לרהיט/דלת - "תמונה תעזור לי להבין מה בדיוק צריך לתקן"
+- בעיות חשמל גלויות (שקע שרוף, נזק) - "תצלם את השקע/הנזק"
+- לפני הרכבת רהיט - "יש תמונה של האריזה/הדגם?"
+- מזגן מקלקל - "תצלם את המזגן והשלט"
+
+**אל תבקש תמונה כש:**
+- הבעיה ברורה מהתיאור ("הברז מטפטף")
+- התמונה לא תשנה את המחיר ("סתימה בכיור")
+- העבודה סטנדרטית ("להחליף ידית דלת")
+
+**כשמקבל תמונה:**
+- נתח את מה שאתה רואה בפירוט
+- התייחס לפרטים ספציפיים ("אני רואה שהנזילה מגיעה מהחיבור...")
+- השתמש במידע לתת הצעת מחיר מדויקת יותר
+- אם אתה רואה בעיות נוספות, ציין אותן
+
+---
+
 ### **Tone**
 
 * Simple
@@ -306,10 +328,10 @@ serve(async (req) => {
   }
 
   try {
-    const { message, conversationId } = await req.json();
+    const { message, conversationId, imageUrl } = await req.json();
     
-    if (!message) {
-      throw new Error('Message is required');
+    if (!message && !imageUrl) {
+      throw new Error('Message or image is required');
     }
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
@@ -338,7 +360,7 @@ serve(async (req) => {
     // Load conversation history
     const { data: messages, error: messagesError } = await supabase
       .from('messages')
-      .select('role, content')
+      .select('role, content, image_url')
       .eq('conversation_id', currentConversationId)
       .order('created_at', { ascending: true });
 
@@ -346,14 +368,38 @@ serve(async (req) => {
 
     console.log('Sending message to Lovable AI');
 
-    // Build conversation history for Lovable AI
+    // Build conversation history for Lovable AI with vision support
+    const historyMessages = (messages || []).map((msg: any) => {
+      if (msg.image_url) {
+        return {
+          role: msg.role,
+          content: [
+            { type: 'text', text: msg.content || '' },
+            { type: 'image_url', image_url: { url: msg.image_url } }
+          ]
+        };
+      }
+      return { role: msg.role, content: msg.content };
+    });
+
+    // Build current user message (with or without image)
+    let currentUserMessage: any;
+    if (imageUrl) {
+      currentUserMessage = {
+        role: 'user',
+        content: [
+          { type: 'text', text: message || 'הנה תמונה של הבעיה' },
+          { type: 'image_url', image_url: { url: imageUrl } }
+        ]
+      };
+    } else {
+      currentUserMessage = { role: 'user', content: message };
+    }
+
     const conversationMessages = [
       { role: 'system', content: SYSTEM_PROMPT },
-      ...(messages || []).map((msg: any) => ({
-        role: msg.role,
-        content: msg.content
-      })),
-      { role: 'user', content: message }
+      ...historyMessages,
+      currentUserMessage
     ];
 
     const response = await fetch(
@@ -396,7 +442,8 @@ serve(async (req) => {
     await supabase.from('messages').insert({
       conversation_id: currentConversationId,
       role: 'user',
-      content: message
+      content: message || 'תמונה',
+      image_url: imageUrl || null
     });
 
     // Save assistant response

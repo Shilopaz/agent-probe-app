@@ -4,12 +4,47 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { PlusCircle, ImagePlus, X } from "lucide-react";
+import ProSummaryPanel from "@/components/ProSummaryPanel";
 
 type Message = {
   id: string;
   role: 'user' | 'assistant';
   content: string;
   imageUrl?: string;
+};
+
+type ProSummary = {
+  totalPrice: string;
+  problemTitle: string;
+  professionalExplanation: string;
+};
+
+const parseProSummary = (response: string): { cleanResponse: string; proSummary: ProSummary | null } => {
+  const proSummaryMatch = response.match(/---PRO_SUMMARY---([\s\S]*?)---END_PRO_SUMMARY---/);
+  
+  if (!proSummaryMatch) {
+    return { cleanResponse: response, proSummary: null };
+  }
+
+  const proSummaryContent = proSummaryMatch[1];
+  const cleanResponse = response.replace(/---PRO_SUMMARY---[\s\S]*?---END_PRO_SUMMARY---/, '').trim();
+
+  const totalPriceMatch = proSummaryContent.match(/TOTAL_PRICE:\s*(.+)/);
+  const problemTitleMatch = proSummaryContent.match(/PROBLEM_TITLE:\s*(.+)/);
+  const professionalExplanationMatch = proSummaryContent.match(/PROFESSIONAL_EXPLANATION:\s*([\s\S]+?)(?=$)/);
+
+  if (totalPriceMatch && problemTitleMatch && professionalExplanationMatch) {
+    return {
+      cleanResponse,
+      proSummary: {
+        totalPrice: totalPriceMatch[1].trim(),
+        problemTitle: problemTitleMatch[1].trim(),
+        professionalExplanation: professionalExplanationMatch[1].trim()
+      }
+    };
+  }
+
+  return { cleanResponse: response, proSummary: null };
 };
 
 const Index = () => {
@@ -19,6 +54,7 @@ const Index = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [proSummary, setProSummary] = useState<ProSummary | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -132,11 +168,19 @@ const Index = () => {
         setConversationId(data.conversationId);
       }
 
-      // Add assistant response
+      // Parse the response for pro summary
+      const { cleanResponse, proSummary: newProSummary } = parseProSummary(data.response || "No response received");
+
+      // Update pro summary if found
+      if (newProSummary) {
+        setProSummary(newProSummary);
+      }
+
+      // Add assistant response (clean, without pro summary block)
       const assistantMsg: Message = {
         id: `assistant-${Date.now()}`,
         role: 'assistant',
-        content: data.response || "No response received"
+        content: cleanResponse
       };
       setMessages(prev => [...prev, assistantMsg]);
 
@@ -165,6 +209,7 @@ const Index = () => {
     setMessages([]);
     setConversationId(null);
     setMessage("");
+    setProSummary(null);
     removeImage();
     toast({
       title: "New chat started",
@@ -174,106 +219,115 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <div className="w-full max-w-2xl h-[600px] flex flex-col space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex-1 text-center space-y-2">
-            <h1 className="text-2xl font-semibold text-foreground">Handyman Quote Agent</h1>
-            <p className="text-sm text-muted-foreground">Get instant quotes for your handyman jobs</p>
-          </div>
-          {messages.length > 0 && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleNewChat}
-              className="flex items-center gap-2"
-            >
-              <PlusCircle className="h-4 w-4" />
-              New Chat
-            </Button>
-          )}
-        </div>
-
-        {/* Messages container */}
-        <div className="flex-1 overflow-y-auto space-y-4 p-4 bg-card border border-border rounded-lg">
-          {messages.length === 0 ? (
-            <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
-              Start by describing your handyman job
+      <div className="w-full max-w-6xl h-[700px] flex gap-4">
+        {/* End User Chat - 2/3 */}
+        <div className="w-2/3 flex flex-col space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex-1 space-y-1">
+              <h1 className="text-xl font-semibold text-foreground">Handyman Quote Agent</h1>
+              <p className="text-xs text-muted-foreground">Get instant quotes for your handyman jobs</p>
             </div>
-          ) : (
-            messages.map((msg) => (
-              <div
-                key={msg.id}
-                className={`p-3 rounded-lg ${
-                  msg.role === 'user'
-                    ? 'bg-primary text-primary-foreground ml-8'
-                    : 'bg-muted mr-8'
-                }`}
+            {messages.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleNewChat}
+                className="flex items-center gap-2"
               >
-                {msg.imageUrl && (
-                  <img 
-                    src={msg.imageUrl} 
-                    alt="Uploaded" 
-                    className="max-w-full max-h-48 rounded-lg mb-2 object-contain"
-                  />
-                )}
-                <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                <PlusCircle className="h-4 w-4" />
+                New Chat
+              </Button>
+            )}
+          </div>
+
+          {/* Messages container */}
+          <div className="flex-1 overflow-y-auto space-y-3 p-3 bg-card border border-border rounded-lg">
+            {messages.length === 0 ? (
+              <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
+                Start by describing your handyman job
               </div>
-            ))
+            ) : (
+              messages.map((msg) => (
+                <div
+                  key={msg.id}
+                  className={`p-3 rounded-lg ${
+                    msg.role === 'user'
+                      ? 'bg-primary text-primary-foreground ml-8'
+                      : 'bg-muted mr-8'
+                  }`}
+                >
+                  {msg.imageUrl && (
+                    <img 
+                      src={msg.imageUrl} 
+                      alt="Uploaded" 
+                      className="max-w-full max-h-40 rounded-lg mb-2 object-contain"
+                    />
+                  )}
+                  <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Image preview */}
+          {imagePreview && (
+            <div className="relative inline-block">
+              <img 
+                src={imagePreview} 
+                alt="Preview" 
+                className="max-h-20 rounded-lg border border-border"
+              />
+              <button
+                onClick={removeImage}
+                className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 hover:bg-destructive/90"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </div>
           )}
+
+          {/* Input area */}
+          <div className="space-y-2">
+            <div className="flex gap-2">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageSelect}
+                ref={fileInputRef}
+                className="hidden"
+              />
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isLoading}
+                title="Upload image"
+              >
+                <ImagePlus className="h-4 w-4" />
+              </Button>
+              <Textarea
+                placeholder="תאר את העבודה שצריך לעשות..."
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                onKeyPress={handleKeyPress}
+                className="min-h-[60px] resize-none flex-1 text-sm"
+                disabled={isLoading}
+              />
+            </div>
+            <Button 
+              onClick={handleSend} 
+              disabled={isLoading || (!message.trim() && !selectedImage)}
+              className="w-full"
+              size="sm"
+            >
+              {isLoading ? "מעבד..." : "שלח"}
+            </Button>
+          </div>
         </div>
 
-        {/* Image preview */}
-        {imagePreview && (
-          <div className="relative inline-block">
-            <img 
-              src={imagePreview} 
-              alt="Preview" 
-              className="max-h-24 rounded-lg border border-border"
-            />
-            <button
-              onClick={removeImage}
-              className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 hover:bg-destructive/90"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-        )}
-
-        {/* Input area */}
-        <div className="space-y-2">
-          <div className="flex gap-2">
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageSelect}
-              ref={fileInputRef}
-              className="hidden"
-            />
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isLoading}
-              title="Upload image"
-            >
-              <ImagePlus className="h-5 w-5" />
-            </Button>
-            <Textarea
-              placeholder="Describe your handyman job..."
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              onKeyPress={handleKeyPress}
-              className="min-h-[80px] resize-none flex-1"
-              disabled={isLoading}
-            />
-          </div>
-          <Button 
-            onClick={handleSend} 
-            disabled={isLoading || (!message.trim() && !selectedImage)}
-            className="w-full"
-          >
-            {isLoading ? "Thinking..." : "Send"}
-          </Button>
+        {/* Pro Summary Panel - 1/3 */}
+        <div className="w-1/3">
+          <ProSummaryPanel summary={proSummary} />
         </div>
       </div>
     </div>

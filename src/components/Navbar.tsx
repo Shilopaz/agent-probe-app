@@ -27,7 +27,7 @@ const Navbar = () => {
             onClick={() => scrollToSection('ai-quote')}
             className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
           >
-            קבל הצעת מחיר
+            איך זה עובד
           </button>
           <button 
             onClick={() => scrollToSection('categories')}

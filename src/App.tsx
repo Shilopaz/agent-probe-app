@@ -7,7 +7,9 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Signup from "./pages/Signup";
+import Login from "./pages/Login";
 import OTPVerification from "./pages/OTPVerification";
+import OTPLogin from "./pages/OTPLogin";
 import CreateProfile from "./pages/CreateProfile";
 import Lobby from "./pages/Lobby";
 
@@ -23,7 +25,9 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/login" element={<Login />} />
             <Route path="/otp" element={<OTPVerification />} />
+            <Route path="/otp-login" element={<OTPLogin />} />
             <Route path="/create-profile" element={<CreateProfile />} />
             <Route path="/lobby" element={<Lobby />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

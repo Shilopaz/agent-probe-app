@@ -1,233 +1,165 @@
 
 
-# 2Tusk - AI-Driven Home Services Landing Page (Hebrew RTL)
+# Quote Section Redesign & Header Centering
 
 ## Overview
-Transform the current handyman quote agent into a full 2Tusk landing page mockup with proper Hebrew RTL support, professional styling, and the existing AI quote flow integrated into the page.
+Redesign the AI Quote section with a modern, polished look, hide the Pro Summary panel until the quote is complete, and fix the navbar to properly center the navigation links.
 
 ---
 
-## Architecture
+## Changes Summary
 
-```text
-┌─────────────────────────────────────────────────────────────────┐
-│                         Landing Page                             │
-├─────────────────────────────────────────────────────────────────┤
-│  Navbar (2Tusk branding + navigation)                           │
-├─────────────────────────────────────────────────────────────────┤
-│  Hero Section (Headline + CTAs)                                 │
-├─────────────────────────────────────────────────────────────────┤
-│  AI Quote Section (2/3 chat + 1/3 pro summary)                  │
-├─────────────────────────────────────────────────────────────────┤
-│  How It Works (3 steps)                                         │
-├─────────────────────────────────────────────────────────────────┤
-│  Categories Grid (6 service categories)                         │
-├─────────────────────────────────────────────────────────────────┤
-│  Trust & Safety Section                                         │
-├─────────────────────────────────────────────────────────────────┤
-│  Pricing Demo (Platform revenue breakdown)                      │
-├─────────────────────────────────────────────────────────────────┤
-│  Footer                                                         │
-└─────────────────────────────────────────────────────────────────┘
-```
-
----
-
-## Implementation Tasks
-
-### 1. RTL & Hebrew Font Setup
-
-**Files:** `index.html`, `src/index.css`
-
-- Update `index.html`:
-  - Set `lang="he"` and `dir="rtl"` on `<html>` tag
-  - Update `<title>` to "2Tusk - שירותי בית מקצועיים"
-  - Add Google Fonts link for "Heebo" Hebrew font
-
-- Update `src/index.css`:
-  - Add Heebo font-family to body
-  - Add RTL-friendly utility classes if needed
-
----
-
-### 2. Create Landing Page Components
-
-**New Components to Create:**
-
-| Component | Purpose |
-|-----------|---------|
-| `Navbar.tsx` | 2Tusk branding, navigation links, CTA buttons |
-| `HeroSection.tsx` | Main headline, subtext, Sign Up/Become Tasker CTAs |
-| `HowItWorks.tsx` | 3-step process with icons |
-| `CategoriesGrid.tsx` | 6 service category cards |
-| `TrustSafety.tsx` | Trust points with icons |
-| `PricingDemo.tsx` | Platform revenue breakdown (user/pro/platform) |
-| `Footer.tsx` | Simple footer with branding |
-| `AIQuoteSection.tsx` | Wrapper for the chat + pro summary (existing logic) |
-
----
-
-### 3. Navbar Component
+### 1. Navbar - Center Navigation Links
 
 **File:** `src/components/Navbar.tsx`
 
-```text
-┌──────────────────────────────────────────────────────────────┐
-│  [CTA Buttons]     [Navigation Links]           [2Tusk Logo] │
-│  הירשם | הפוך לבעל מקצוע      איך זה עובד | קטגוריות           │
-└──────────────────────────────────────────────────────────────┘
-```
+**Current Issue:** The navbar uses `justify-between` which distributes items evenly, but the middle section isn't truly centered on the screen.
 
-- Logo on right (RTL)
-- Navigation links in center
-- CTAs on left
-
----
-
-### 4. Hero Section Component
-
-**File:** `src/components/HeroSection.tsx`
-
-**Hebrew Content:**
-- Headline: "בעל מקצוע לכל עבודה בבית. מהיר, אמין, ובמחיר מיידי"
-- Subtext: "תאר את הבעיה, קבל הצעת מחיר מיידית מהבינה המלאכותית שלנו, והזמן בעל מקצוע מאומת תוך דקות"
-- CTA 1: "הירשם" (Sign Up)
-- CTA 2: "הפוך לבעל מקצוע" (Become a Tasker)
-- Micro-text: "ללא התחייבות. לוקח פחות מדקה"
-
----
-
-### 5. How It Works Component
-
-**File:** `src/components/HowItWorks.tsx`
-
-**3 Steps (Hebrew):**
-1. "ספר לנו מה אתה צריך" - AI מבין את הבעיה מיד
-2. "קבל הצעת מחיר מיידית" - מבוסס על נתוני שוק אמיתיים
-3. "הזמן בעל מקצוע מאומת" - התאמה לבעלי מקצוע אמינים
-
----
-
-### 6. Categories Grid Component
-
-**File:** `src/components/CategoriesGrid.tsx`
-
-**6 Categories (Hebrew):**
-- 📺 תליית טלוויזיה (TV hanging)
-- 🔧 אינסטלציה (Plumbing)
-- ❄️ התקנת מזגן (AC installation)
-- ⚡ עבודות חשמל (Electrical work)
-- 🪑 הרכבת רהיטים (Furniture assembly)
-- 🔌 מכשירי חשמל (Appliances)
-
----
-
-### 7. Trust & Safety Component
-
-**File:** `src/components/TrustSafety.tsx`
-
-**Title:** "למה אלפים סומכים עלינו לשירותי בית"
-
-**4 Trust Points:**
-- ✅ בעלי מקצוע מאומתים
-- 💳 תשלום רק לאחר סיום העבודה
-- 🔒 הצפנה מאובטחת
-- 📞 תמיכה מלאה
-
----
-
-### 8. Pricing Demo Component
-
-**File:** `src/components/PricingDemo.tsx`
-
-**Interactive Demo showing:**
+**Solution:** Use a 3-column grid layout to ensure the middle navigation is perfectly centered:
 
 ```text
-┌─────────────────────────────────────────────────────────────┐
-│                  איך המחירים עובדים?                         │
-├───────────────────────┬─────────────────────────────────────┤
-│     צד הלקוח          │           צד בעל המקצוע              │
-├───────────────────────┼─────────────────────────────────────┤
-│  מחיר בסיס: ₪100      │  ערך העבודה: ₪100                   │
-│  עמלת שירות (10%):    │  עמלת פלטפורמה (10%): -₪10          │
-│  ₪10                  │                                     │
-│  ─────────────────    │  ─────────────────────              │
-│  סה"כ לתשלום: ₪110    │  תשלום נטו: ₪90                     │
-└───────────────────────┴─────────────────────────────────────┘
-│           הכנסת 2Tusk: ₪20 (20% לכל עבודה של ₪100)          │
-└─────────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────┐
+│  [CTAs]          [איך זה עובד | קטגוריות | מחירים]          [2Tusk] │
+│  (flex-start)              (center)                  (flex-end) │
+└────────────────────────────────────────────────────────────────┘
 ```
+
+**Changes:**
+- Replace `flex justify-between` with `grid grid-cols-3`
+- Left column: CTAs with `justify-self-start`
+- Center column: Navigation links with `justify-self-center`  
+- Right column: Logo with `justify-self-end`
 
 ---
 
-### 9. AI Quote Section Component
+### 2. AI Quote Section - Complete Redesign
 
 **File:** `src/components/AIQuoteSection.tsx`
 
-- Wrap existing chat + pro summary functionality
-- Move the current `Index.tsx` chat logic into this component
-- Keep the 2/3 - 1/3 layout for user chat and pro summary
+**Current State:**
+- 2/3 chat + 1/3 Pro Summary side-by-side layout
+- Pro Summary always visible
+
+**New Design:**
+- Full-width chat section with improved styling
+- Pro Summary hidden by default
+- "Pro View" CTA button appears after quote is complete
+- Clicking "Pro View" reveals the Pro Summary in a modal/overlay
+
+**Visual Layout:**
+
+```text
+┌─────────────────────────────────────────────────────────────┐
+│                    קבל הצעת מחיר מיידית                       │
+│     תאר את העבודה והבינה המלאכותית תחשב לך מחיר בזמן אמת     │
+├─────────────────────────────────────────────────────────────┤
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │                                                     │    │
+│  │               Chat Messages Area                    │    │
+│  │         (Modern cards with shadows)                 │    │
+│  │                                                     │    │
+│  └─────────────────────────────────────────────────────┘    │
+│                                                             │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │  [📷]  [           Input textarea            ]      │    │
+│  │        [        קבל הצעת מחיר        ]              │    │
+│  └─────────────────────────────────────────────────────┘    │
+│                                                             │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │  When quote is ready:                               │    │
+│  │     [ 👁️ Pro View - צפה בסיכום מקצועי ]             │    │
+│  └─────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Key Changes:**
+- Add `showProSummary` state (boolean, default: `false`)
+- Chat area becomes full width (max-w-2xl centered)
+- Add gradient backgrounds and subtle shadows
+- Modern message bubbles with better spacing
+- "Pro View" CTA button appears below the chat when `proSummary` exists
+- Clicking "Pro View" sets `showProSummary = true`
 
 ---
 
-### 10. Update Landing Page (Index.tsx)
+### 3. Pro Summary Panel - Modal/Overlay Design
 
-**File:** `src/pages/Index.tsx`
+**File:** `src/components/ProSummaryPanel.tsx`
 
-- Import all new components
-- Compose the full landing page layout
-- Add scroll-to functionality for CTA buttons
-- Structure:
+**Changes:**
+- Convert to a modal/dialog overlay
+- Add close button
+- Add backdrop blur effect
+- Animate entrance with slide-up effect
 
-```tsx
-<div dir="rtl" className="font-heebo">
-  <Navbar />
-  <HeroSection />
-  <AIQuoteSection /> {/* Existing chat functionality */}
-  <HowItWorks />
-  <CategoriesGrid />
-  <TrustSafety />
-  <PricingDemo />
-  <Footer />
-</div>
+**New Props:**
+```typescript
+type ProSummaryPanelProps = {
+  summary: ProSummary | null;
+  isOpen: boolean;
+  onClose: () => void;
+};
+```
+
+**Visual:**
+```text
+┌────────────────────────────────────────────┐
+│  ╔════════════════════════════════════╗    │
+│  ║   סיכום לבעל מקצוע          [X]   ║    │
+│  ╠════════════════════════════════════╣    │
+│  ║                                    ║    │
+│  ║   ┌──────────────────────────┐     ║    │
+│  ║   │  מחיר כולל: ₪350        │     ║    │
+│  ║   └──────────────────────────┘     ║    │
+│  ║                                    ║    │
+│  ║   כותרת: תיקון נזילה בברז מטבח    ║    │
+│  ║                                    ║    │
+│  ║   הסבר מקצועי:                    ║    │
+│  ║   [Professional text area]         ║    │
+│  ║                                    ║    │
+│  ╚════════════════════════════════════╝    │
+│                (backdrop blur)              │
+└────────────────────────────────────────────┘
 ```
 
 ---
 
-### 11. Footer Component
+## Detailed Implementation
 
-**File:** `src/components/Footer.tsx`
+### File 1: `src/components/Navbar.tsx`
 
-- 2Tusk branding
-- Copyright text
-- Simple, minimalist design
+- Change container from flex to `grid grid-cols-3`
+- Logo: `justify-self-end`
+- Navigation: `justify-self-center`
+- CTAs: `justify-self-start`
+
+### File 2: `src/components/AIQuoteSection.tsx`
+
+- Remove the 2/3 - 1/3 split layout
+- Add `showProSummary` state
+- Chat section becomes centered with `max-w-2xl mx-auto`
+- Add gradient background to section
+- Improve message styling with shadows and better colors
+- Add "Pro View" CTA button that appears when `proSummary` exists
+- Pass `isOpen` and `onClose` props to `ProSummaryPanel`
+- Use Shadcn Dialog component for the modal
+
+### File 3: `src/components/ProSummaryPanel.tsx`
+
+- Wrap content in Shadcn `Dialog` component
+- Add `isOpen` and `onClose` props
+- Style with modern card design
+- Add smooth entrance animation
 
 ---
 
-## Technical Details
+## Visual Improvements
 
-### File Changes Summary
-
-| Action | File |
-|--------|------|
-| Modify | `index.html` - RTL, Hebrew lang, Heebo font |
-| Modify | `src/index.css` - Font family, RTL utilities |
-| Create | `src/components/Navbar.tsx` |
-| Create | `src/components/HeroSection.tsx` |
-| Create | `src/components/HowItWorks.tsx` |
-| Create | `src/components/CategoriesGrid.tsx` |
-| Create | `src/components/TrustSafety.tsx` |
-| Create | `src/components/PricingDemo.tsx` |
-| Create | `src/components/AIQuoteSection.tsx` |
-| Create | `src/components/Footer.tsx` |
-| Modify | `src/pages/Index.tsx` - Compose landing page |
-
-### Design System
-- Font: Heebo (Google Fonts)
-- Colors: Use existing Shadcn theme (minimal, professional)
-- Icons: Lucide React (already installed)
-- Components: Shadcn UI (Card, Button, etc.)
-
-### No Database Changes
-This is a mockup - no data persistence needed. The existing chat functionality with the backend agent will continue to work as-is.
+| Element | Current | New |
+|---------|---------|-----|
+| Chat container | Plain border | Gradient border, shadow-lg |
+| Messages | Simple rounded | Glass effect, better spacing |
+| Input area | Basic | Floating card with shadow |
+| Pro View CTA | N/A | Primary button with icon |
+| Pro Summary | Always visible sidebar | Modal overlay with backdrop |
 

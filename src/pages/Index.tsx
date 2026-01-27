@@ -2,7 +2,6 @@ import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import AIQuoteSection from "@/components/AIQuoteSection";
 import CategoriesGrid from "@/components/CategoriesGrid";
-import TrustSafety from "@/components/TrustSafety";
 import Footer from "@/components/Footer";
 
 const Index = () => {
@@ -13,7 +12,6 @@ const Index = () => {
         <HeroSection />
         <AIQuoteSection />
         <CategoriesGrid />
-        <TrustSafety />
       </main>
       <Footer />
     </div>

@@ -1,165 +1,131 @@
 
-
-# Quote Section Redesign & Header Centering
+# Signup Flow Implementation Plan
 
 ## Overview
-Redesign the AI Quote section with a modern, polished look, hide the Pro Summary panel until the quote is complete, and fix the navbar to properly center the navigation links.
+Implement a complete signup flow for 2Tusk with phone/OTP authentication and social login options (Google, Apple), followed by profile creation and a logged-in lobby view.
 
----
-
-## Changes Summary
-
-### 1. Navbar - Center Navigation Links
-
-**File:** `src/components/Navbar.tsx`
-
-**Current Issue:** The navbar uses `justify-between` which distributes items evenly, but the middle section isn't truly centered on the screen.
-
-**Solution:** Use a 3-column grid layout to ensure the middle navigation is perfectly centered:
-
+## User Flow Diagram
 ```text
-┌────────────────────────────────────────────────────────────────┐
-│  [CTAs]          [איך זה עובד | קטגוריות | מחירים]          [2Tusk] │
-│  (flex-start)              (center)                  (flex-end) │
-└────────────────────────────────────────────────────────────────┘
++------------------+     +------------------+     +------------------+     +------------------+
+|   Landing Page   | --> |   Signup Page    | --> |   OTP Page       | --> |  Profile Page    |
+| (Click "הירשם")  |     | Phone/Google/    |     | 6-digit code     |     | Name, Address,   |
+|                  |     | Apple            |     |                  |     | Email            |
++------------------+     +------------------+     +------------------+     +------------------+
+                                                                                     |
+                                                                                     v
+                                                                          +------------------+
+                                                                          |  Logged-in Lobby |
+                                                                          |  (Dashboard)     |
+                                                                          +------------------+
 ```
 
-**Changes:**
-- Replace `flex justify-between` with `grid grid-cols-3`
-- Left column: CTAs with `justify-self-start`
-- Center column: Navigation links with `justify-self-center`  
-- Right column: Logo with `justify-self-end`
+## Implementation Steps
 
----
+### Step 1: Create Auth Context
+Create a simple auth context to manage user state across the signup flow without real authentication.
 
-### 2. AI Quote Section - Complete Redesign
+**New File:** `src/contexts/AuthContext.tsx`
+- Store user phone number, profile data, and login status
+- Provide methods to update state through signup steps
+- Track current step in the signup flow
 
-**File:** `src/components/AIQuoteSection.tsx`
+### Step 2: Create Signup Page
+**New File:** `src/pages/Signup.tsx`
+- Phone number input field
+- "המשך" (Continue) button to proceed to OTP
+- Divider with "או" (or)
+- Google signup button
+- Apple signup button
+- Clicking Google/Apple directly marks user as logged in and redirects to lobby
 
-**Current State:**
-- 2/3 chat + 1/3 Pro Summary side-by-side layout
-- Pro Summary always visible
+### Step 3: Create OTP Verification Page
+**New File:** `src/pages/OTPVerification.tsx`
+- Title: "הזן את הקוד שנשלח אליך"
+- 6 individual input boxes for OTP digits
+- Auto-advance to next box when digit entered
+- Accept any 6-digit code (mockup behavior)
+- "אמת" (Verify) button to proceed to profile creation
 
-**New Design:**
-- Full-width chat section with improved styling
-- Pro Summary hidden by default
-- "Pro View" CTA button appears after quote is complete
-- Clicking "Pro View" reveals the Pro Summary in a modal/overlay
+### Step 4: Create Profile Creation Page
+**New File:** `src/pages/CreateProfile.tsx`
+- Form fields (all required):
+  - שם פרטי (First Name)
+  - שם משפחה (Last Name)
+  - מייל (Email)
+  - עיר (City)
+  - רחוב (Street)
+  - מספר בית (House Number)
+  - קומה (Floor)
+  - דירה (Apartment)
+- Validation with error alerts for empty fields
+- "סיים הרשמה" (Complete Registration) button
 
-**Visual Layout:**
+### Step 5: Create Logged-in Lobby Page
+**New File:** `src/pages/Lobby.tsx`
+- Welcome message with user's name
+- Simple dashboard layout
+- Logout option to return to landing page
 
+### Step 6: Update Navigation Components
+**Update:** `src/components/Navbar.tsx`
+- Make "הירשם" button navigate to `/signup`
+- Show different state when user is logged in
+
+**Update:** `src/components/HeroSection.tsx`
+- Make "הירשם" button navigate to `/signup`
+
+### Step 7: Update App Router
+**Update:** `src/App.tsx`
+- Wrap app with AuthProvider
+- Add routes:
+  - `/signup` - Signup page
+  - `/otp` - OTP verification
+  - `/create-profile` - Profile creation
+  - `/lobby` - Logged-in dashboard
+
+## Files to Create
+1. `src/contexts/AuthContext.tsx` - Auth state management
+2. `src/pages/Signup.tsx` - Initial signup page
+3. `src/pages/OTPVerification.tsx` - OTP verification page
+4. `src/pages/CreateProfile.tsx` - Profile creation form
+5. `src/pages/Lobby.tsx` - Logged-in lobby/dashboard
+
+## Files to Modify
+1. `src/App.tsx` - Add routes and AuthProvider
+2. `src/components/Navbar.tsx` - Link signup button
+3. `src/components/HeroSection.tsx` - Link signup button
+
+## Technical Details
+
+### Auth Context Structure
 ```text
-┌─────────────────────────────────────────────────────────────┐
-│                    קבל הצעת מחיר מיידית                       │
-│     תאר את העבודה והבינה המלאכותית תחשב לך מחיר בזמן אמת     │
-├─────────────────────────────────────────────────────────────┤
-│  ┌─────────────────────────────────────────────────────┐    │
-│  │                                                     │    │
-│  │               Chat Messages Area                    │    │
-│  │         (Modern cards with shadows)                 │    │
-│  │                                                     │    │
-│  └─────────────────────────────────────────────────────┘    │
-│                                                             │
-│  ┌─────────────────────────────────────────────────────┐    │
-│  │  [📷]  [           Input textarea            ]      │    │
-│  │        [        קבל הצעת מחיר        ]              │    │
-│  └─────────────────────────────────────────────────────┘    │
-│                                                             │
-│  ┌─────────────────────────────────────────────────────┐    │
-│  │  When quote is ready:                               │    │
-│  │     [ 👁️ Pro View - צפה בסיכום מקצועי ]             │    │
-│  └─────────────────────────────────────────────────────┘    │
-└─────────────────────────────────────────────────────────────┘
+AuthContext
+├── isLoggedIn: boolean
+├── phoneNumber: string
+├── profile: { firstName, lastName, email, city, street, houseNumber, floor, apartment }
+├── loginMethod: 'phone' | 'google' | 'apple' | null
+├── setPhoneNumber()
+├── setProfile()
+├── login()
+├── logout()
 ```
 
-**Key Changes:**
-- Add `showProSummary` state (boolean, default: `false`)
-- Chat area becomes full width (max-w-2xl centered)
-- Add gradient backgrounds and subtle shadows
-- Modern message bubbles with better spacing
-- "Pro View" CTA button appears below the chat when `proSummary` exists
-- Clicking "Pro View" sets `showProSummary = true`
+### OTP Component
+Will use the existing `InputOTP` component from `src/components/ui/input-otp.tsx` which already has:
+- Auto-focus behavior
+- Individual slot styling
+- RTL support
 
----
+### Form Validation
+Using Zod schema validation for profile fields:
+- All fields required (non-empty strings)
+- Email format validation
+- Display inline error messages in Hebrew
 
-### 3. Pro Summary Panel - Modal/Overlay Design
-
-**File:** `src/components/ProSummaryPanel.tsx`
-
-**Changes:**
-- Convert to a modal/dialog overlay
-- Add close button
-- Add backdrop blur effect
-- Animate entrance with slide-up effect
-
-**New Props:**
-```typescript
-type ProSummaryPanelProps = {
-  summary: ProSummary | null;
-  isOpen: boolean;
-  onClose: () => void;
-};
-```
-
-**Visual:**
-```text
-┌────────────────────────────────────────────┐
-│  ╔════════════════════════════════════╗    │
-│  ║   סיכום לבעל מקצוע          [X]   ║    │
-│  ╠════════════════════════════════════╣    │
-│  ║                                    ║    │
-│  ║   ┌──────────────────────────┐     ║    │
-│  ║   │  מחיר כולל: ₪350        │     ║    │
-│  ║   └──────────────────────────┘     ║    │
-│  ║                                    ║    │
-│  ║   כותרת: תיקון נזילה בברז מטבח    ║    │
-│  ║                                    ║    │
-│  ║   הסבר מקצועי:                    ║    │
-│  ║   [Professional text area]         ║    │
-│  ║                                    ║    │
-│  ╚════════════════════════════════════╝    │
-│                (backdrop blur)              │
-└────────────────────────────────────────────┘
-```
-
----
-
-## Detailed Implementation
-
-### File 1: `src/components/Navbar.tsx`
-
-- Change container from flex to `grid grid-cols-3`
-- Logo: `justify-self-end`
-- Navigation: `justify-self-center`
-- CTAs: `justify-self-start`
-
-### File 2: `src/components/AIQuoteSection.tsx`
-
-- Remove the 2/3 - 1/3 split layout
-- Add `showProSummary` state
-- Chat section becomes centered with `max-w-2xl mx-auto`
-- Add gradient background to section
-- Improve message styling with shadows and better colors
-- Add "Pro View" CTA button that appears when `proSummary` exists
-- Pass `isOpen` and `onClose` props to `ProSummaryPanel`
-- Use Shadcn Dialog component for the modal
-
-### File 3: `src/components/ProSummaryPanel.tsx`
-
-- Wrap content in Shadcn `Dialog` component
-- Add `isOpen` and `onClose` props
-- Style with modern card design
-- Add smooth entrance animation
-
----
-
-## Visual Improvements
-
-| Element | Current | New |
-|---------|---------|-----|
-| Chat container | Plain border | Gradient border, shadow-lg |
-| Messages | Simple rounded | Glass effect, better spacing |
-| Input area | Basic | Floating card with shadow |
-| Pro View CTA | N/A | Primary button with icon |
-| Pro Summary | Always visible sidebar | Modal overlay with backdrop |
-
+### UI Components Used
+- Card, CardHeader, CardContent from shadcn
+- Button variants (default, outline)
+- Input component
+- InputOTP for 6-digit code
+- Form validation with react-hook-form + zod
+- Toast notifications for errors

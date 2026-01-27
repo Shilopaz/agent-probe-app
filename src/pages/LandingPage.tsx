@@ -24,7 +24,7 @@ const LandingPage = () => {
       {/* Navigation */}
       <nav className="border-b border-border">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-xl font-bold text-foreground">שירותים פרו</h1>
+          <h1 className="text-xl font-bold text-foreground">2Tusk</h1>
           <div className="flex gap-4">
             <Link to="/pro-dashboard">
               <Button variant="ghost" size="sm">לוח בקרה לבעלי מקצוע</Button>
@@ -150,7 +150,7 @@ const LandingPage = () => {
       {/* Footer */}
       <footer className="border-t border-border py-8">
         <div className="container mx-auto px-4 text-center text-muted-foreground text-sm">
-          © 2025 שירותים פרו. כל הזכויות שמורות.
+          © 2025 2Tusk. כל הזכויות שמורות.
         </div>
       </footer>
     </div>

@@ -68,7 +68,7 @@ const CreateProfile = () => {
                     <FormItem>
                       <FormLabel>שם פרטי</FormLabel>
                       <FormControl>
-                        <Input placeholder="ישראל" {...field} />
+                        <Input placeholder="הכנס שם פרטי" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -82,7 +82,7 @@ const CreateProfile = () => {
                     <FormItem>
                       <FormLabel>שם משפחה</FormLabel>
                       <FormControl>
-                        <Input placeholder="ישראלי" {...field} />
+                        <Input placeholder="הכנס שם משפחה" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -97,7 +97,7 @@ const CreateProfile = () => {
                   <FormItem>
                     <FormLabel>מייל</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="email@example.com" dir="ltr" {...field} />
+                      <Input type="email" placeholder="הכנס מייל" dir="ltr" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -111,7 +111,7 @@ const CreateProfile = () => {
                   <FormItem>
                     <FormLabel>עיר</FormLabel>
                     <FormControl>
-                      <Input placeholder="תל אביב" {...field} />
+                      <Input placeholder="הכנס עיר" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -125,7 +125,7 @@ const CreateProfile = () => {
                   <FormItem>
                     <FormLabel>רחוב</FormLabel>
                     <FormControl>
-                      <Input placeholder="רוטשילד" {...field} />
+                      <Input placeholder="הכנס רחוב" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -140,7 +140,7 @@ const CreateProfile = () => {
                     <FormItem>
                       <FormLabel>מספר בית</FormLabel>
                       <FormControl>
-                        <Input placeholder="10" {...field} />
+                        <Input placeholder="הכנס מספר בית" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -154,7 +154,7 @@ const CreateProfile = () => {
                     <FormItem>
                       <FormLabel>קומה</FormLabel>
                       <FormControl>
-                        <Input placeholder="3" {...field} />
+                        <Input placeholder="הכנס קומה" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -168,7 +168,7 @@ const CreateProfile = () => {
                     <FormItem>
                       <FormLabel>דירה</FormLabel>
                       <FormControl>
-                        <Input placeholder="12" {...field} />
+                        <Input placeholder="הכנס דירה" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

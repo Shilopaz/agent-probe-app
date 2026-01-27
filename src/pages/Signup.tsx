@@ -49,7 +49,7 @@ const Signup = () => {
               <Input
                 id="phone"
                 type="tel"
-                placeholder="050-1234567"
+                placeholder="הכנס מספר פלאפון"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 className="text-right"

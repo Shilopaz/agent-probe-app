@@ -24,22 +24,16 @@ const Navbar = () => {
         {/* Navigation Links - Center */}
         <div className="hidden md:flex items-center gap-8 justify-self-center">
           <button 
-            onClick={() => scrollToSection('how-it-works')}
+            onClick={() => scrollToSection('ai-quote')}
             className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
           >
-            איך זה עובד
+            קבל הצעת מחיר
           </button>
           <button 
             onClick={() => scrollToSection('categories')}
             className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
           >
             קטגוריות
-          </button>
-          <button 
-            onClick={() => scrollToSection('pricing')}
-            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-          >
-            מחירים
           </button>
         </div>
 

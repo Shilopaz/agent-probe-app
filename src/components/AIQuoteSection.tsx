@@ -6,6 +6,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { PlusCircle, ImagePlus, X, Eye } from "lucide-react";
 import ProSummaryPanel from "@/components/ProSummaryPanel";
 
+const SUGGESTIONS = [
+  { icon: "🚿", text: "נזילה מהברז במטבח" },
+  { icon: "📺", text: "תליית טלוויזיה על הקיר" },
+  { icon: "💡", text: "החלפת מנורה בתקרה" },
+  { icon: "🚽", text: "סתימה באסלה" },
+  { icon: "🪑", text: "הרכבת רהיט מאיקאה" },
+  { icon: "❄️", text: "ניקוי מזגן" },
+];
+
 type Message = {
   id: string;
   role: 'user' | 'assistant';
@@ -198,6 +207,10 @@ const AIQuoteSection = () => {
     }
   };
 
+  const handleSuggestionClick = (text: string) => {
+    setMessage(text);
+  };
+
   const handleNewChat = () => {
     setMessages([]);
     setConversationId(null);
@@ -340,6 +353,25 @@ const AIQuoteSection = () => {
                 {isLoading ? "מעבד..." : "קבל הצעת מחיר"}
               </Button>
             </div>
+
+            {/* Suggestion chips - only show when no messages */}
+            {messages.length === 0 && (
+              <div className="p-4 border-t border-border">
+                <p className="text-xs text-muted-foreground mb-3">💡 נסה לשאול:</p>
+                <div className="flex flex-wrap gap-2">
+                  {SUGGESTIONS.map((suggestion, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handleSuggestionClick(suggestion.text)}
+                      className="flex items-center gap-2 px-3 py-2 text-sm bg-muted/50 hover:bg-muted border border-border rounded-full transition-all hover:scale-105 hover:shadow-sm"
+                    >
+                      <span>{suggestion.icon}</span>
+                      <span>{suggestion.text}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Pro View CTA - appears when quote is ready */}

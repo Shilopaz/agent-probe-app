@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { PlusCircle, ImagePlus, X } from "lucide-react";
+import { PlusCircle, ImagePlus, X, Eye } from "lucide-react";
 import ProSummaryPanel from "@/components/ProSummaryPanel";
 
 type Message = {
@@ -55,6 +55,7 @@ const AIQuoteSection = () => {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [proSummary, setProSummary] = useState<ProSummary | null>(null);
+  const [showProSummary, setShowProSummary] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -202,6 +203,7 @@ const AIQuoteSection = () => {
     setConversationId(null);
     setMessage("");
     setProSummary(null);
+    setShowProSummary(false);
     removeImage();
     toast({
       title: "צ'אט חדש",
@@ -210,28 +212,27 @@ const AIQuoteSection = () => {
   };
 
   return (
-    <section id="ai-quote" className="py-16 bg-muted/20">
+    <section id="ai-quote" className="py-20 bg-gradient-to-b from-background to-muted/30">
       <div className="container mx-auto px-4">
         <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">
           קבל הצעת מחיר מיידית
         </h2>
-        <p className="text-muted-foreground text-center mb-8 max-w-xl mx-auto">
+        <p className="text-muted-foreground text-center mb-10 max-w-xl mx-auto">
           תאר את העבודה שצריך לעשות והבינה המלאכותית תחשב לך מחיר בזמן אמת
         </p>
 
-        <div className="max-w-6xl mx-auto h-[600px] flex gap-4">
-          {/* Chat - 2/3 */}
-          <div className="w-2/3 flex flex-col space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex-1 space-y-1">
-                <h3 className="text-lg font-semibold text-foreground">תאר את העבודה</h3>
-              </div>
+        <div className="max-w-2xl mx-auto">
+          {/* Chat Card */}
+          <div className="bg-card border border-border rounded-2xl shadow-lg overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b border-border bg-muted/30">
+              <h3 className="text-lg font-semibold text-foreground">תאר את העבודה</h3>
               {messages.length > 0 && (
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
                   onClick={handleNewChat}
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
                 >
                   <PlusCircle className="h-4 w-4" />
                   צ'אט חדש
@@ -240,29 +241,44 @@ const AIQuoteSection = () => {
             </div>
 
             {/* Messages container */}
-            <div className="flex-1 overflow-y-auto space-y-3 p-3 bg-card border border-border rounded-lg">
+            <div className="h-[350px] overflow-y-auto p-4 space-y-4">
               {messages.length === 0 ? (
                 <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
-                  תאר את העבודה שאתה צריך ונחשב לך מחיר מיידי
+                  <div className="text-center">
+                    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+                      <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                      </svg>
+                    </div>
+                    <p>תאר את העבודה שאתה צריך ונחשב לך מחיר מיידי</p>
+                  </div>
                 </div>
               ) : (
                 messages.map((msg) => (
                   <div
                     key={msg.id}
-                    className={`p-3 rounded-lg ${
+                    className={`max-w-[85%] ${
                       msg.role === 'user'
-                        ? 'bg-primary text-primary-foreground mr-8'
-                        : 'bg-muted ml-8'
+                        ? 'mr-auto'
+                        : 'ml-auto'
                     }`}
                   >
-                    {msg.imageUrl && (
-                      <img 
-                        src={msg.imageUrl} 
-                        alt="Uploaded" 
-                        className="max-w-full max-h-40 rounded-lg mb-2 object-contain"
-                      />
-                    )}
-                    <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                    <div
+                      className={`p-4 rounded-2xl shadow-sm ${
+                        msg.role === 'user'
+                          ? 'bg-primary text-primary-foreground rounded-br-md'
+                          : 'bg-muted/80 backdrop-blur-sm border border-border rounded-bl-md'
+                      }`}
+                    >
+                      {msg.imageUrl && (
+                        <img 
+                          src={msg.imageUrl} 
+                          alt="Uploaded" 
+                          className="max-w-full max-h-40 rounded-lg mb-3 object-contain"
+                        />
+                      )}
+                      <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.content}</p>
+                    </div>
                   </div>
                 ))
               )}
@@ -270,24 +286,26 @@ const AIQuoteSection = () => {
 
             {/* Image preview */}
             {imagePreview && (
-              <div className="relative inline-block">
-                <img 
-                  src={imagePreview} 
-                  alt="Preview" 
-                  className="max-h-20 rounded-lg border border-border"
-                />
-                <button
-                  onClick={removeImage}
-                  className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 hover:bg-destructive/90"
-                >
-                  <X className="h-3 w-3" />
-                </button>
+              <div className="px-4 pb-2">
+                <div className="relative inline-block">
+                  <img 
+                    src={imagePreview} 
+                    alt="Preview" 
+                    className="max-h-20 rounded-lg border border-border"
+                  />
+                  <button
+                    onClick={removeImage}
+                    className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 hover:bg-destructive/90 transition-colors"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
               </div>
             )}
 
             {/* Input area */}
-            <div className="space-y-2">
-              <div className="flex gap-2">
+            <div className="p-4 border-t border-border bg-muted/20">
+              <div className="flex gap-3 items-end">
                 <input
                   type="file"
                   accept="image/*"
@@ -301,6 +319,7 @@ const AIQuoteSection = () => {
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isLoading}
                   title="העלה תמונה"
+                  className="shrink-0"
                 >
                   <ImagePlus className="h-4 w-4" />
                 </Button>
@@ -309,27 +328,43 @@ const AIQuoteSection = () => {
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  className="min-h-[60px] resize-none flex-1 text-sm"
+                  className="min-h-[48px] max-h-[120px] resize-none flex-1 text-sm bg-background"
                   disabled={isLoading}
                 />
               </div>
               <Button 
                 onClick={handleSend} 
                 disabled={isLoading || (!message.trim() && !selectedImage)}
-                className="w-full"
-                size="sm"
+                className="w-full mt-3"
               >
                 {isLoading ? "מעבד..." : "קבל הצעת מחיר"}
               </Button>
             </div>
           </div>
 
-          {/* Pro Summary Panel - 1/3 */}
-          <div className="w-1/3">
-            <ProSummaryPanel summary={proSummary} />
-          </div>
+          {/* Pro View CTA - appears when quote is ready */}
+          {proSummary && (
+            <div className="mt-6 text-center">
+              <Button
+                onClick={() => setShowProSummary(true)}
+                variant="outline"
+                size="lg"
+                className="gap-2 border-primary/30 hover:bg-primary/5 hover:border-primary/50"
+              >
+                <Eye className="h-5 w-5" />
+                צפה בסיכום מקצועי
+              </Button>
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Pro Summary Modal */}
+      <ProSummaryPanel 
+        summary={proSummary} 
+        isOpen={showProSummary} 
+        onClose={() => setShowProSummary(false)} 
+      />
     </section>
   );
 };

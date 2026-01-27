@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowDown } from "lucide-react";
 
@@ -23,8 +24,8 @@ const HeroSection = () => {
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-4">
-          <Button size="lg" className="text-lg px-8" onClick={scrollToQuote}>
-            הירשם
+          <Button size="lg" className="text-lg px-8" asChild>
+            <Link to="/signup">הירשם</Link>
           </Button>
           <Button size="lg" variant="outline" className="text-lg px-8">
             הפוך לבעל מקצוע

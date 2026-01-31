@@ -1,10 +1,8 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/contexts/AuthContext';
-import { User, Tv, Wrench, Snowflake, Zap, Armchair, Plug, ArrowLeft } from 'lucide-react';
+import { User, Tv, Wrench, Snowflake, Zap, Armchair, Plug } from 'lucide-react';
+import AIChat from '@/components/AIChat';
 
 const quickCategories = [
   { icon: Tv, label: "תליית טלוויזיה", prompt: "אני צריך לתלות טלוויזיה על הקיר" },
@@ -18,20 +16,16 @@ const quickCategories = [
 const Lobby = () => {
   const navigate = useNavigate();
   const { profile } = useAuth();
-  const [problemDescription, setProblemDescription] = useState('');
+  const [selectedPrompt, setSelectedPrompt] = useState<string | undefined>(undefined);
 
   const displayName = profile?.firstName || 'משתמש';
 
-  const handleStartQuote = () => {
-    // Navigate to quote flow with the description
-    console.log('Starting quote with:', problemDescription);
-    // TODO: Navigate to AI quote flow with problemDescription
+  const handleCategoryClick = (prompt: string) => {
+    setSelectedPrompt(prompt);
   };
 
-  const handleCategoryClick = (prompt: string) => {
-    // Auto-fill and start quote
-    console.log('Starting quote with category:', prompt);
-    // TODO: Navigate to AI quote flow with prompt
+  const handleNewChat = () => {
+    setSelectedPrompt(undefined);
   };
 
   return (
@@ -54,39 +48,25 @@ const Lobby = () => {
 
       <main className="container mx-auto px-4">
         {/* Hero Section */}
-        <section className="py-12 md:py-20 max-w-2xl mx-auto text-center">
-          <h1 className="text-3xl md:text-4xl font-bold mb-4">
+        <section className="py-8 md:py-12 text-center">
+          <h1 className="text-3xl md:text-4xl font-bold mb-2">
             שלום {displayName}, במה אפשר לעזור היום?
           </h1>
           <p className="text-muted-foreground text-lg mb-8">
             תאר את הבעיה וקבל הצעת מחיר מיידית
           </p>
+        </section>
 
-          {/* Main Input Box */}
-          <Card className="shadow-lg">
-            <CardContent className="p-6">
-              <Textarea
-                placeholder="תאר את הבעיה שלך..."
-                value={problemDescription}
-                onChange={(e) => setProblemDescription(e.target.value)}
-                className="min-h-[120px] text-lg resize-none border-0 focus-visible:ring-0 p-0 mb-4"
-              />
-              {problemDescription.trim() && (
-                <Button 
-                  size="lg" 
-                  className="w-full md:w-auto gap-2"
-                  onClick={handleStartQuote}
-                >
-                  קבל הצעת מחיר
-                  <ArrowLeft className="h-4 w-4" />
-                </Button>
-              )}
-            </CardContent>
-          </Card>
+        {/* AI Chat Component */}
+        <section className="pb-8">
+          <AIChat 
+            initialMessage={selectedPrompt} 
+            onNewChat={handleNewChat}
+          />
         </section>
 
         {/* Quick Categories */}
-        <section className="pb-12 max-w-3xl mx-auto">
+        <section className="pb-8 max-w-2xl mx-auto">
           <h2 className="text-lg font-semibold mb-4 text-center text-muted-foreground">
             או בחר קטגוריה
           </h2>

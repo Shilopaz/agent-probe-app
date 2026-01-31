@@ -12,6 +12,7 @@ import OTPVerification from "./pages/OTPVerification";
 import OTPLogin from "./pages/OTPLogin";
 import CreateProfile from "./pages/CreateProfile";
 import Lobby from "./pages/Lobby";
+import Profile from "./pages/Profile";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +31,7 @@ const App = () => (
             <Route path="/otp-login" element={<OTPLogin />} />
             <Route path="/create-profile" element={<CreateProfile />} />
             <Route path="/lobby" element={<Lobby />} />
+            <Route path="/profile" element={<Profile />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

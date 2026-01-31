@@ -1,100 +1,78 @@
 
 
-# WhatsApp-Style Input with Buttons Inside
+# Add "מצא בעל מקצוע" CTA Inside Chat
 
 ## Overview
-Move all action buttons (ImagePlus, Mic/Send) inside the pill-shaped input container to match WhatsApp Web's design, and change the send button color from green to the app's primary blue color.
+Add a Call-to-Action button inside the chat messages area that appears after the AI agent provides a final quote. The button will be styled as a prominent action within the conversation flow.
 
-## Current State
-```
-[📷 Button] [____Input Container____] [Mic/Send Button]
-```
-- Buttons are outside the input container
-- Send button uses `bg-green-500`
+## Current Behavior
+- When a final quote is generated, `proSummary` state is set
+- A "צפה בסיכום מקצועי" button appears **outside** the chat card
+- No CTA exists inside the chat itself
 
-## Target State
-```
-[📷 ____Input Text____ Mic/Send]
-      ^---- All inside one pill-shaped container ----^
-```
-- All elements inside one unified pill container
-- Send button uses `bg-primary` (blue)
+## Proposed Change
+Add a CTA button **inside the chat messages area** after the last assistant message when `proSummary` exists.
 
----
+## Implementation
 
-## File to Modify
+### File to Modify
 `src/components/AIChat.tsx`
 
-## Changes (Lines 438-489)
-
-### New Layout Structure
-```tsx
-<div className="flex items-end gap-2">
-  {/* Single Pill-shaped Container with everything inside */}
-  <div className="flex-1 flex items-center bg-background rounded-full border border-input px-2 py-1 gap-1">
-    {/* ImagePlus Button - inside left */}
-    <Button
-      variant="ghost"
-      size="icon"
-      onClick={() => fileInputRef.current?.click()}
-      disabled={isLoading}
-      title="העלה תמונה"
-      className="h-8 w-8 rounded-full shrink-0 text-muted-foreground hover:text-foreground"
-    >
-      <ImagePlus className="h-5 w-5" />
-    </Button>
-    
-    {/* Textarea - center, flexible width */}
-    <Textarea
-      placeholder="תאר את העבודה שצריך לעשות..."
-      value={message}
-      onChange={(e) => setMessage(e.target.value)}
-      onKeyPress={handleKeyPress}
-      className="flex-1 resize-none border-0 bg-transparent min-h-[24px] max-h-[120px] py-2 focus-visible:ring-0 focus-visible:ring-offset-0 text-sm"
-      disabled={isLoading}
-      rows={1}
-    />
-    
-    {/* Mic or Send Button - inside right */}
-    {message.trim() || selectedImage ? (
-      <Button
-        onClick={handleSend}
-        disabled={isLoading}
-        size="icon"
-        className="h-8 w-8 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shrink-0"
-      >
-        {isLoading ? (
-          <div className="h-4 w-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
-        ) : (
-          <Send className="h-4 w-4" />
-        )}
-      </Button>
-    ) : (
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={toggleListening}
-        disabled={isLoading}
-        className={`h-8 w-8 rounded-full shrink-0 ${isListening ? 'text-red-500 animate-pulse bg-red-50' : 'text-muted-foreground hover:text-foreground'}`}
-      >
-        {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-      </Button>
-    )}
-  </div>
-</div>
+### Add Icon Import
+```typescript
+import { Search } from "lucide-react";
 ```
 
-## Key Changes Summary
+### Update Messages Rendering (Lines 379-407)
+After rendering the messages, add a CTA block that appears when `proSummary` is set:
 
-| Element | Before | After |
-|---------|--------|-------|
-| Layout | 3 separate elements in flex | 1 container with 3 elements inside |
-| ImagePlus button | Outside, h-10 w-10 | Inside left, h-8 w-8 |
-| Mic/Send button | Outside, h-10 w-10 | Inside right, h-8 w-8 |
-| Send button color | `bg-green-500` | `bg-primary` (app's blue) |
-| Container padding | `px-4 py-2` | `px-2 py-1` (tighter for internal buttons) |
-| Icon sizes | `h-5 w-5` | `h-4 w-4` (slightly smaller to fit) |
+```tsx
+{messages.length === 0 ? (
+  // ... empty state unchanged
+) : (
+  <>
+    {messages.map((msg) => (
+      // ... existing message rendering
+    ))}
+    
+    {/* Find Professional CTA - appears after quote */}
+    {proSummary && (
+      <div className="flex justify-center pt-4">
+        <Button
+          onClick={() => {
+            // TODO: Navigate to professional matching or trigger action
+            toast({
+              title: "מחפשים בעל מקצוע",
+              description: "בקרוב נמצא לך את בעל המקצוע המתאים",
+            });
+          }}
+          className="gap-2 px-6"
+          size="lg"
+        >
+          <Search className="h-5 w-5" />
+          מצא בעל מקצוע
+        </Button>
+      </div>
+    )}
+  </>
+)}
+```
 
-## Visual Result
-A single unified pill-shaped input field with the image upload icon on the left inside, text input in the middle, and mic/send button on the right inside - matching WhatsApp Web's clean, integrated design.
+### Visual Design
+- Button appears centered below the last message
+- Uses primary color styling (consistent with app theme)
+- Includes a search icon for visual clarity
+- Has some top padding to separate from the last message
+
+### User Flow
+1. User describes their problem
+2. AI asks clarifying questions (if needed)
+3. AI provides final quote with `---PRO_SUMMARY---` block
+4. CTA "מצא בעל מקצוע" appears inside the chat
+5. User can click to proceed to professional matching
+
+## Technical Notes
+- The CTA only appears when `proSummary` is truthy (quote was generated)
+- Clicking the button currently shows a toast - this can be extended to navigate to a matching page
+- The button is placed inside the scrollable messages area so it stays contextual
 

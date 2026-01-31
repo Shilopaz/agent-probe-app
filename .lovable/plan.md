@@ -1,131 +1,72 @@
 
-# Signup Flow Implementation Plan
+# Integrate AI Chat Component into Lobby
 
 ## Overview
-Implement a complete signup flow for 2Tusk with phone/OTP authentication and social login options (Google, Apple), followed by profile creation and a logged-in lobby view.
+Replace the simple text input in the Lobby page with the full AI chat component from the landing page, keeping the personalized header and quick categories.
 
-## User Flow Diagram
-```text
-+------------------+     +------------------+     +------------------+     +------------------+
-|   Landing Page   | --> |   Signup Page    | --> |   OTP Page       | --> |  Profile Page    |
-| (Click "הירשם")  |     | Phone/Google/    |     | 6-digit code     |     | Name, Address,   |
-|                  |     | Apple            |     |                  |     | Email            |
-+------------------+     +------------------+     +------------------+     +------------------+
-                                                                                     |
-                                                                                     v
-                                                                          +------------------+
-                                                                          |  Logged-in Lobby |
-                                                                          |  (Dashboard)     |
-                                                                          +------------------+
-```
+## Current State
+- **Lobby**: Has a simple `Textarea` and a button that doesn't connect to the AI flow
+- **AIQuoteSection**: Full chat with messages, image upload, suggestions, pro summary, and backend integration
 
-## Implementation Steps
+## Implementation Approach
 
-### Step 1: Create Auth Context
-Create a simple auth context to manage user state across the signup flow without real authentication.
+### Option A: Extract Reusable Chat Component (Recommended)
+Create a standalone `AIChat` component that can be used in both the landing page and the lobby.
 
-**New File:** `src/contexts/AuthContext.tsx`
-- Store user phone number, profile data, and login status
-- Provide methods to update state through signup steps
-- Track current step in the signup flow
+**New File:** `src/components/AIChat.tsx`
+- Extract the chat card UI and all logic from `AIQuoteSection`
+- Make it a self-contained component
+- Include: messages display, input area, image upload, suggestions, pro summary
 
-### Step 2: Create Signup Page
-**New File:** `src/pages/Signup.tsx`
-- Phone number input field
-- "המשך" (Continue) button to proceed to OTP
-- Divider with "או" (or)
-- Google signup button
-- Apple signup button
-- Clicking Google/Apple directly marks user as logged in and redirects to lobby
+**Update:** `src/components/AIQuoteSection.tsx`
+- Import and use the new `AIChat` component
+- Keep the section wrapper with title and description
 
-### Step 3: Create OTP Verification Page
-**New File:** `src/pages/OTPVerification.tsx`
-- Title: "הזן את הקוד שנשלח אליך"
-- 6 individual input boxes for OTP digits
-- Auto-advance to next box when digit entered
-- Accept any 6-digit code (mockup behavior)
-- "אמת" (Verify) button to proceed to profile creation
+**Update:** `src/pages/Lobby.tsx`
+- Replace the simple input Card with the `AIChat` component
+- Keep the header, welcome message, quick categories, and footer links
+- When a quick category is clicked, pass the prompt to the chat component
 
-### Step 4: Create Profile Creation Page
-**New File:** `src/pages/CreateProfile.tsx`
-- Form fields (all required):
-  - שם פרטי (First Name)
-  - שם משפחה (Last Name)
-  - מייל (Email)
-  - עיר (City)
-  - רחוב (Street)
-  - מספר בית (House Number)
-  - קומה (Floor)
-  - דירה (Apartment)
-- Validation with error alerts for empty fields
-- "סיים הרשמה" (Complete Registration) button
+### Files to Create
+1. `src/components/AIChat.tsx` - Reusable chat component
 
-### Step 5: Create Logged-in Lobby Page
-**New File:** `src/pages/Lobby.tsx`
-- Welcome message with user's name
-- Simple dashboard layout
-- Logout option to return to landing page
-
-### Step 6: Update Navigation Components
-**Update:** `src/components/Navbar.tsx`
-- Make "הירשם" button navigate to `/signup`
-- Show different state when user is logged in
-
-**Update:** `src/components/HeroSection.tsx`
-- Make "הירשם" button navigate to `/signup`
-
-### Step 7: Update App Router
-**Update:** `src/App.tsx`
-- Wrap app with AuthProvider
-- Add routes:
-  - `/signup` - Signup page
-  - `/otp` - OTP verification
-  - `/create-profile` - Profile creation
-  - `/lobby` - Logged-in dashboard
-
-## Files to Create
-1. `src/contexts/AuthContext.tsx` - Auth state management
-2. `src/pages/Signup.tsx` - Initial signup page
-3. `src/pages/OTPVerification.tsx` - OTP verification page
-4. `src/pages/CreateProfile.tsx` - Profile creation form
-5. `src/pages/Lobby.tsx` - Logged-in lobby/dashboard
-
-## Files to Modify
-1. `src/App.tsx` - Add routes and AuthProvider
-2. `src/components/Navbar.tsx` - Link signup button
-3. `src/components/HeroSection.tsx` - Link signup button
+### Files to Modify
+1. `src/components/AIQuoteSection.tsx` - Use the new AIChat component
+2. `src/pages/Lobby.tsx` - Integrate AIChat instead of simple input
 
 ## Technical Details
 
-### Auth Context Structure
+### AIChat Component Props
 ```text
-AuthContext
-├── isLoggedIn: boolean
-├── phoneNumber: string
-├── profile: { firstName, lastName, email, city, street, houseNumber, floor, apartment }
-├── loginMethod: 'phone' | 'google' | 'apple' | null
-├── setPhoneNumber()
-├── setProfile()
-├── login()
-├── logout()
+AIChat Component
++-- initialMessage?: string  (for auto-starting with a category prompt)
++-- onNewChat?: () => void   (callback when new chat is started)
 ```
 
-### OTP Component
-Will use the existing `InputOTP` component from `src/components/ui/input-otp.tsx` which already has:
-- Auto-focus behavior
-- Individual slot styling
-- RTL support
+### Lobby Integration
+- Remove the simple `Textarea` and `Card`
+- Add `AIChat` component in its place
+- Quick category buttons will call a function to set the initial message in the chat
+- The welcome headline stays above the chat
 
-### Form Validation
-Using Zod schema validation for profile fields:
-- All fields required (non-empty strings)
-- Email format validation
-- Display inline error messages in Hebrew
+### Component Structure (Lobby)
+```text
+Header (Logo + Profile)
+    |
+Welcome Message ("שלום {name}, במה אפשר לעזור היום?")
+    |
+AIChat Component (full chat with messages, input, suggestions)
+    |
+Quick Categories Grid (optional shortcuts)
+    |
+Footer Links
+```
 
-### UI Components Used
-- Card, CardHeader, CardContent from shadcn
-- Button variants (default, outline)
-- Input component
-- InputOTP for 6-digit code
-- Form validation with react-hook-form + zod
-- Toast notifications for errors
+### Key Features Preserved
+- Full message history display
+- Image upload functionality
+- Suggestion chips in empty state
+- Pro summary panel after quote
+- New chat button
+- Loading states
+- Toast notifications

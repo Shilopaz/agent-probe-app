@@ -31,6 +31,7 @@ type ProSummary = {
 interface AIChatProps {
   initialMessage?: string;
   onNewChat?: () => void;
+  autoSend?: boolean;
 }
 
 const parseProSummary = (response: string): { cleanResponse: string; proSummary: ProSummary | null } => {
@@ -61,7 +62,7 @@ const parseProSummary = (response: string): { cleanResponse: string; proSummary:
   return { cleanResponse: response, proSummary: null };
 };
 
-const AIChat = ({ initialMessage, onNewChat }: AIChatProps) => {
+const AIChat = ({ initialMessage, onNewChat, autoSend = false }: AIChatProps) => {
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [conversationId, setConversationId] = useState<string | null>(null);
@@ -74,11 +75,23 @@ const AIChat = ({ initialMessage, onNewChat }: AIChatProps) => {
   const { toast } = useToast();
 
   // Handle initial message from props (e.g., from quick categories)
+  // Track if we've already auto-sent for this initialMessage
+  const autoSentRef = useRef<string | null>(null);
+  
   useEffect(() => {
     if (initialMessage && messages.length === 0) {
       setMessage(initialMessage);
+      
+      // Auto-send if enabled and we haven't already sent this message
+      if (autoSend && autoSentRef.current !== initialMessage) {
+        autoSentRef.current = initialMessage;
+        // Small delay to ensure state is updated
+        setTimeout(() => {
+          handleSendWithMessage(initialMessage);
+        }, 100);
+      }
     }
-  }, [initialMessage, messages.length]);
+  }, [initialMessage, messages.length, autoSend]);
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -124,8 +137,8 @@ const AIChat = ({ initialMessage, onNewChat }: AIChatProps) => {
     return urlData.publicUrl;
   };
 
-  const handleSend = async () => {
-    if (!message.trim() && !selectedImage) {
+  const handleSendWithMessage = async (messageToSend: string) => {
+    if (!messageToSend.trim() && !selectedImage) {
       toast({
         title: "שגיאה",
         description: "יש להזין הודעה או לבחור תמונה",
@@ -134,7 +147,7 @@ const AIChat = ({ initialMessage, onNewChat }: AIChatProps) => {
       return;
     }
 
-    const userMessage = message.trim();
+    const userMessage = messageToSend.trim();
     setMessage("");
     setIsLoading(true);
 
@@ -210,6 +223,10 @@ const AIChat = ({ initialMessage, onNewChat }: AIChatProps) => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSend = () => {
+    handleSendWithMessage(message);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {

@@ -3,8 +3,53 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { PlusCircle, ImagePlus, X, Eye } from "lucide-react";
+import { PlusCircle, ImagePlus, X, Eye, Mic, MicOff, Send } from "lucide-react";
 import ProSummaryPanel from "@/components/ProSummaryPanel";
+
+// TypeScript declaration for Web Speech API
+interface SpeechRecognitionEvent extends Event {
+  results: SpeechRecognitionResultList;
+}
+
+interface SpeechRecognitionResultList {
+  length: number;
+  item(index: number): SpeechRecognitionResult;
+  [index: number]: SpeechRecognitionResult;
+}
+
+interface SpeechRecognitionResult {
+  length: number;
+  item(index: number): SpeechRecognitionAlternative;
+  [index: number]: SpeechRecognitionAlternative;
+  isFinal: boolean;
+}
+
+interface SpeechRecognitionAlternative {
+  transcript: string;
+  confidence: number;
+}
+
+interface SpeechRecognitionInstance extends EventTarget {
+  lang: string;
+  continuous: boolean;
+  interimResults: boolean;
+  onresult: ((event: SpeechRecognitionEvent) => void) | null;
+  onend: (() => void) | null;
+  onerror: (() => void) | null;
+  start: () => void;
+  stop: () => void;
+}
+
+interface SpeechRecognitionConstructor {
+  new (): SpeechRecognitionInstance;
+}
+
+declare global {
+  interface Window {
+    SpeechRecognition: SpeechRecognitionConstructor;
+    webkitSpeechRecognition: SpeechRecognitionConstructor;
+  }
+}
 
 const SUGGESTIONS = [
   { icon: "🚿", text: "נזילה מהברז במטבח" },
@@ -71,8 +116,33 @@ const AIChat = ({ initialMessage, onNewChat, autoSend = false }: AIChatProps) =>
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [proSummary, setProSummary] = useState<ProSummary | null>(null);
   const [showProSummary, setShowProSummary] = useState(false);
+  const [isListening, setIsListening] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
   const { toast } = useToast();
+
+  // Initialize Web Speech API for Hebrew
+  useEffect(() => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    
+    if (SpeechRecognition) {
+      const recognition = new SpeechRecognition();
+      recognition.lang = 'he-IL';
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      
+      recognition.onresult = (event) => {
+        const transcript = Array.from(event.results)
+          .map(result => result[0].transcript)
+          .join('');
+        setMessage(transcript);
+      };
+      
+      recognition.onend = () => setIsListening(false);
+      recognition.onerror = () => setIsListening(false);
+      recognitionRef.current = recognition;
+    }
+  }, []);
 
   // Handle initial message from props (e.g., from quick categories)
   // Track if we've already auto-sent for this initialMessage
@@ -240,6 +310,24 @@ const AIChat = ({ initialMessage, onNewChat, autoSend = false }: AIChatProps) =>
     setMessage(text);
   };
 
+  const toggleListening = () => {
+    if (!recognitionRef.current) {
+      toast({
+        title: "לא נתמך",
+        description: "הדפדפן שלך לא תומך בזיהוי קולי",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (isListening) {
+      recognitionRef.current.stop();
+    } else {
+      recognitionRef.current.start();
+      setIsListening(true);
+    }
+  };
+
   const handleNewChat = () => {
     setMessages([]);
     setConversationId(null);
@@ -338,7 +426,7 @@ const AIChat = ({ initialMessage, onNewChat, autoSend = false }: AIChatProps) =>
             </div>
           )}
 
-          {/* Input area */}
+          {/* Input area - WhatsApp style */}
           <div className="p-4 border-t border-border bg-muted/20">
             <input
               type="file"
@@ -347,33 +435,58 @@ const AIChat = ({ initialMessage, onNewChat, autoSend = false }: AIChatProps) =>
               ref={fileInputRef}
               className="hidden"
             />
-            <div className="relative flex items-end border border-input rounded-md bg-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+            <div className="flex items-end gap-2">
+              {/* ImagePlus Button - circular, left side */}
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isLoading}
                 title="העלה תמונה"
-                className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground"
+                className="h-10 w-10 rounded-full shrink-0 text-muted-foreground hover:text-foreground"
               >
-                <ImagePlus className="h-4 w-4" />
+                <ImagePlus className="h-5 w-5" />
               </Button>
-              <Textarea
-                placeholder="תאר את העבודה שצריך לעשות..."
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
-                className="min-h-[48px] max-h-[120px] resize-none flex-1 text-sm border-0 bg-transparent pl-12 focus-visible:ring-0 focus-visible:ring-offset-0"
-                disabled={isLoading}
-              />
+              
+              {/* Pill-shaped Input Container */}
+              <div className="flex-1 flex items-center bg-background rounded-full border border-input px-4 py-2">
+                <Textarea
+                  placeholder="תאר את העבודה שצריך לעשות..."
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  className="flex-1 resize-none border-0 bg-transparent min-h-[24px] max-h-[120px] py-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-sm"
+                  disabled={isLoading}
+                  rows={1}
+                />
+              </div>
+              
+              {/* Mic or Send Button - right side */}
+              {message.trim() || selectedImage ? (
+                <Button
+                  onClick={handleSend}
+                  disabled={isLoading}
+                  size="icon"
+                  className="h-10 w-10 rounded-full bg-green-500 hover:bg-green-600 text-white shrink-0"
+                >
+                  {isLoading ? (
+                    <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <Send className="h-5 w-5" />
+                  )}
+                </Button>
+              ) : (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={toggleListening}
+                  disabled={isLoading}
+                  className={`h-10 w-10 rounded-full shrink-0 ${isListening ? 'text-red-500 animate-pulse bg-red-50' : 'text-muted-foreground hover:text-foreground'}`}
+                >
+                  {isListening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+                </Button>
+              )}
             </div>
-            <Button 
-              onClick={handleSend} 
-              disabled={isLoading || (!message.trim() && !selectedImage)}
-              className="w-full mt-3"
-            >
-              {isLoading ? "מעבד..." : "קבל הצעת מחיר"}
-            </Button>
           </div>
 
           {/* Suggestion chips - only show when no messages */}

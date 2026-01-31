@@ -1,31 +1,36 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { User, Tv, Wrench, Snowflake, Zap, Armchair, Plug } from 'lucide-react';
+import { User, Hammer, Plug, Truck, Sparkles, Key, Armchair } from 'lucide-react';
 import AIChat from '@/components/AIChat';
 
 const quickCategories = [
-  { icon: Tv, label: "תליית טלוויזיה", prompt: "אני צריך לתלות טלוויזיה על הקיר" },
-  { icon: Wrench, label: "אינסטלציה", prompt: "יש לי בעיית אינסטלציה" },
-  { icon: Snowflake, label: "התקנת מזגן", prompt: "אני צריך להתקין מזגן" },
-  { icon: Zap, label: "חשמל", prompt: "יש לי בעיית חשמל" },
+  { icon: Hammer, label: "הנדימן", prompt: "אני צריך שירותי הנדימן" },
+  { icon: Plug, label: "חיבור מכשירי חשמל", prompt: "אני צריך לחבר מכשיר חשמלי" },
+  { icon: Truck, label: "הובלות קטנות", prompt: "אני צריך הובלה קטנה" },
+  { icon: Sparkles, label: "ניקיון וסדר", prompt: "אני צריך שירותי ניקיון וסדר" },
+  { icon: Key, label: "מנעולן", prompt: "אני צריך מנעולן" },
   { icon: Armchair, label: "הרכבת רהיטים", prompt: "אני צריך להרכיב רהיטים" },
-  { icon: Plug, label: "מכשירי חשמל", prompt: "אני צריך עזרה עם מכשיר חשמלי" },
 ];
 
 const Lobby = () => {
   const navigate = useNavigate();
   const { profile } = useAuth();
   const [selectedPrompt, setSelectedPrompt] = useState<string | undefined>(undefined);
+  const [autoSend, setAutoSend] = useState(false);
+  const chatRef = useRef<HTMLDivElement>(null);
 
   const displayName = profile?.firstName || 'משתמש';
 
   const handleCategoryClick = (prompt: string) => {
     setSelectedPrompt(prompt);
+    setAutoSend(true);
+    chatRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   const handleNewChat = () => {
     setSelectedPrompt(undefined);
+    setAutoSend(false);
   };
 
   return (
@@ -58,10 +63,11 @@ const Lobby = () => {
         </section>
 
         {/* AI Chat Component */}
-        <section className="pb-8">
+        <section className="pb-8" ref={chatRef}>
           <AIChat 
             initialMessage={selectedPrompt} 
             onNewChat={handleNewChat}
+            autoSend={autoSend}
           />
         </section>
 

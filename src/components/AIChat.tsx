@@ -340,21 +340,21 @@ const AIChat = ({ initialMessage, onNewChat, autoSend = false }: AIChatProps) =>
 
           {/* Input area */}
           <div className="p-4 border-t border-border bg-muted/20">
-            <div className="flex gap-3 items-end">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageSelect}
-                ref={fileInputRef}
-                className="hidden"
-              />
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageSelect}
+              ref={fileInputRef}
+              className="hidden"
+            />
+            <div className="relative flex items-end border border-input rounded-md bg-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
               <Button
-                variant="outline"
+                variant="ghost"
                 size="icon"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isLoading}
                 title="העלה תמונה"
-                className="shrink-0"
+                className="absolute left-2 bottom-2 h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground"
               >
                 <ImagePlus className="h-4 w-4" />
               </Button>
@@ -363,7 +363,7 @@ const AIChat = ({ initialMessage, onNewChat, autoSend = false }: AIChatProps) =>
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
-                className="min-h-[48px] max-h-[120px] resize-none flex-1 text-sm bg-background"
+                className="min-h-[48px] max-h-[120px] resize-none flex-1 text-sm border-0 bg-transparent pl-12 focus-visible:ring-0 focus-visible:ring-offset-0"
                 disabled={isLoading}
               />
             </div>

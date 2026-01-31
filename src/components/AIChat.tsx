@@ -354,7 +354,7 @@ const AIChat = ({ initialMessage, onNewChat, autoSend = false }: AIChatProps) =>
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isLoading}
                 title="העלה תמונה"
-                className="absolute left-2 bottom-2 h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground"
+                className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground"
               >
                 <ImagePlus className="h-4 w-4" />
               </Button>

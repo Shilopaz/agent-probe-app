@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { PlusCircle, ImagePlus, X, Eye, Mic, MicOff, Send } from "lucide-react";
+import { PlusCircle, ImagePlus, X, Eye, Mic, MicOff, Send, Search } from "lucide-react";
 import ProSummaryPanel from "@/components/ProSummaryPanel";
 
 // TypeScript declaration for Web Speech API
@@ -377,33 +377,54 @@ const AIChat = ({ initialMessage, onNewChat, autoSend = false }: AIChatProps) =>
                 </div>
               </div>
             ) : (
-              messages.map((msg) => (
-                <div
-                  key={msg.id}
-                  className={`max-w-[85%] ${
-                    msg.role === 'user'
-                      ? 'mr-auto'
-                      : 'ml-auto'
-                  }`}
-                >
+              <>
+                {messages.map((msg) => (
                   <div
-                    className={`p-4 rounded-2xl shadow-sm ${
+                    key={msg.id}
+                    className={`max-w-[85%] ${
                       msg.role === 'user'
-                        ? 'bg-primary text-primary-foreground rounded-br-md'
-                        : 'bg-muted/80 backdrop-blur-sm border border-border rounded-bl-md'
+                        ? 'mr-auto'
+                        : 'ml-auto'
                     }`}
                   >
-                    {msg.imageUrl && (
-                      <img 
-                        src={msg.imageUrl} 
-                        alt="Uploaded" 
-                        className="max-w-full max-h-40 rounded-lg mb-3 object-contain"
-                      />
-                    )}
-                    <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.content}</p>
+                    <div
+                      className={`p-4 rounded-2xl shadow-sm ${
+                        msg.role === 'user'
+                          ? 'bg-primary text-primary-foreground rounded-br-md'
+                          : 'bg-muted/80 backdrop-blur-sm border border-border rounded-bl-md'
+                      }`}
+                    >
+                      {msg.imageUrl && (
+                        <img 
+                          src={msg.imageUrl} 
+                          alt="Uploaded" 
+                          className="max-w-full max-h-40 rounded-lg mb-3 object-contain"
+                        />
+                      )}
+                      <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.content}</p>
+                    </div>
                   </div>
-                </div>
-              ))
+                ))}
+                
+                {/* Find Professional CTA - appears after quote */}
+                {proSummary && (
+                  <div className="flex justify-center pt-4">
+                    <Button
+                      onClick={() => {
+                        toast({
+                          title: "מחפשים בעל מקצוע",
+                          description: "בקרוב נמצא לך את בעל המקצוע המתאים",
+                        });
+                      }}
+                      className="gap-2 px-6"
+                      size="lg"
+                    >
+                      <Search className="h-5 w-5" />
+                      מצא בעל מקצוע
+                    </Button>
+                  </div>
+                )}
+              </>
             )}
           </div>
 

@@ -11,8 +11,8 @@ const Navbar = () => {
           <Button variant="outline" size="sm" asChild>
             <Link to="/signup">הירשם</Link>
           </Button>
-          <Button size="sm">
-            הפוך לבעל מקצוע
+          <Button size="sm" asChild>
+            <Link to="/lobby">הפוך לבעל מקצוע</Link>
           </Button>
         </div>
 
